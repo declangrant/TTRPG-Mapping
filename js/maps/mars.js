@@ -1,4 +1,5 @@
 import { buildGridLayer } from "../utils/grid.js";
+import { build3dLayer } from "../utils/objects.js";
 
 require([
     "esri/config",
@@ -65,6 +66,7 @@ require([
     const labelStyle = [{
         labelPlacement: "above-center",
         labelExpressionInfo: { expression: "$feature.name" },
+        where: `classification <> 4`,
         symbol: {
             type: "label-3d",
             symbolLayers: [{
@@ -90,13 +92,14 @@ require([
     // populate polygon renderer fields
     function createFillSymbol(value, color) {
         return {
-            "value": value,
-            "symbol": {
-                "type": "simple-fill",
-                "color": color,
-                "outline": {
-                    "color": [0, 0, 0, 0.4],
-                    "size": 2
+            value: value,
+            symbol: {
+                type: "simple-fill",
+                color: color.concat([0.5]),
+                style: "diagonal-cross",
+                outline: {
+                    color: color.concat([1]),
+                    width: 2
                 }
             }
         };
@@ -110,11 +113,11 @@ require([
             type: "unique-value",
             field: "classification",
             uniqueValueInfos: [
-                createFillSymbol(0, [70, 156, 17, 0.7]),    // city
-                createFillSymbol(1, [66, 135, 245, 0.7]),   // outpost
-                createFillSymbol(2, [112, 44, 176, 0.7]),   // research
-                createFillSymbol(3, [214, 77, 56, 0.7]),    // military
-                createFillSymbol(4, [100, 100, 100, 0.7])   // industry
+                createFillSymbol(0, [70, 156, 17]),    // city
+                createFillSymbol(1, [66, 135, 245]),   // outpost
+                createFillSymbol(2, [112, 44, 176]),   // research
+                createFillSymbol(3, [214, 77, 56]),    // military
+                createFillSymbol(4, [100, 100, 100])   // industry
             ]
         },
         labelingInfo: labelStyle,
@@ -128,7 +131,6 @@ require([
     });
     // format popup content
     function getLocationInfo(feature) {
-        console.log(feature)
         // create div
         const div = document.createElement("div");
         // display mandatory fields
@@ -163,6 +165,8 @@ require([
     const layerList = new LayerList({view});
     view.ui.add(layerList, "top-right");
 
-    map.add(buildGridLayer(GraphicsLayer, Graphic, reference))
+    map.add(buildGridLayer(GraphicsLayer, Graphic, reference));
+
+    map.add(build3dLayer("https://services7.arcgis.com/DhtXm9kBXs1EuvvD/arcgis/rest/services/Mars_Surface_Objects/FeatureServer", reference, FeatureLayer, GraphicsLayer, Graphic));
 
 });
